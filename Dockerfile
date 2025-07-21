@@ -1,27 +1,39 @@
-# Use PHP with Apache
 FROM php:8.2-apache
 
-# Install PHP extensions and system tools
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
-    git unzip curl libzip-dev zip npm \
-    && docker-php-ext-install pdo pdo_mysql zip
+    git \
+    curl \
+    zip \
+    unzip \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    && docker-php-ext-install pdo pdo_mysql gd zip
 
-# Enable Apache rewrite module
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Copy Laravel app code
-COPY . /var/www/html
-
-# Set correct permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage
-
+# Set working directory
 WORKDIR /var/www/html
 
-# Install Laravel dependencies
+# Copy existing application directory contents
+COPY . .
+
+# Install composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Set correct permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Expose port 80
 EXPOSE 80
+
+# Start Apache
+CMD ["apache2-foreground"]
