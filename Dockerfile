@@ -20,7 +20,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 COPY . .
 
-COPY .env .env
+COPY .env.example .env
 
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
